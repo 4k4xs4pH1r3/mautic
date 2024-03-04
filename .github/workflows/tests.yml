@@ -44,14 +44,19 @@ jobs:
           --health-retries=3
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Harden Runner
+      uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       # Codecov needs access to previous commits, so we add fetch-depth: 0
       with:
         fetch-depth: 0
 
     - name: PHPUnit cache
       if: ${{matrix.php-versions == '8.1' && matrix.db-types == 'mariadb'}}
-      uses: actions/cache@v4
+      uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
       with:
         path: ./var/cache/phpunit
         key: ${{ runner.os }}-phpunit-${{ hashFiles('**/composer.lock') }}-${{ github.run_id }}
@@ -60,7 +65,7 @@ jobs:
           ${{ runner.os }}-phpunit-
 
     - name: Setup PHP, with composer and extensions
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2
       with:
         php-version: ${{ matrix.php-versions }}
         extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, mysql, pdo_mysql
@@ -81,7 +86,7 @@ jobs:
 
     - name: Install dependencies
       # composer install cache - https://github.com/ramsey/composer-install
-      uses: "ramsey/composer-install@v2"
+      uses: "ramsey/composer-install@1919f6c305aea6ab10e6181a8ddf72317ad77e0e # v2"
 
     - name: Run tests - database = ${{ matrix.db-types }}
       run: |
@@ -96,7 +101,7 @@ jobs:
 
     - name: Upload coverage report
       if: ${{ matrix.php-versions == '8.1' && matrix.db-types == 'mariadb' && github.repository == 'mautic/mautic' }}
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # v3.1.6
       with:
         files: ./coverage.xml
         fail_ci_if_error: true
@@ -104,7 +109,7 @@ jobs:
 
     - name: Save test results for future steps
       if: ${{ matrix.php-versions == '8.1' && matrix.db-types == 'mariadb' && github.repository == 'mautic/mautic' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
       with:
         name: test-results
         path: |
@@ -112,7 +117,7 @@ jobs:
           ./coverage.xml
 
     - name: Slack Notification if tests fail
-      uses: rtCamp/action-slack-notify@v2
+      uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # v2.2.0
       if: ${{ failure() && github.event_name == 'schedule' }}
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
@@ -120,7 +125,7 @@ jobs:
 
     - name: Store log artifacts
       if: ${{ always() }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
       with:
         name: logs-${{ matrix.php-versions }}-${{ matrix.db-types }}
         path: ./var/logs/*
@@ -139,13 +144,18 @@ jobs:
     name: ${{ matrix.commands }} - ${{ matrix.php-versions }}
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Harden Runner
+      uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: 0
 
     - name: Rector Cache
       if: ${{matrix.commands == 'Rector'}}
-      uses: actions/cache@v4
+      uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
       with:
         path: ./var/cache/rector
         key: ${{ runner.os }}-rector-${{ hashFiles('**/composer.lock') }}-${{ github.run_id }}
@@ -155,7 +165,7 @@ jobs:
 
     - name: PHPStan Cache
       if: ${{matrix.commands == 'PHPSTAN'}}
-      uses: actions/cache@v4
+      uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
       with:
         path: ./var/phpstan-cache
         key: ${{ runner.os }}-phpstan-${{ hashFiles('**/composer.lock') }}-${{ github.run_id }}
@@ -164,7 +174,7 @@ jobs:
           ${{ runner.os }}-phpstan-
 
     - name: NPM Cache
-      uses: actions/cache@v4
+      uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
       with:
         path: ./var/cache/js
         key: ${{ runner.os }}-js-${{ hashFiles('**/package-lock.json', 'webpack.config.js') }}-${{ github.run_id }}
@@ -174,17 +184,17 @@ jobs:
 
     - name: Get changed files
       id: changed-files
-      uses: tj-actions/changed-files@v42
+      uses: tj-actions/changed-files@800a2825992141ddde1a8bca8ad394cec34d3188 # v42.0.5
 
     - name: Setup PHP, with composer and extensions
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2
       with:
         php-version: ${{ matrix.php-versions }}
         extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, mysql, pdo_mysql
 
     - name: Install dependencies
       # composer install cache - https://github.com/ramsey/composer-install
-      uses: "ramsey/composer-install@v2"
+      uses: "ramsey/composer-install@1919f6c305aea6ab10e6181a8ddf72317ad77e0e # v2"
       env:
         NPM_CONFIG_CACHE: ./var/cache/js/npm
 
@@ -255,7 +265,7 @@ jobs:
         fi
 
     - name: Slack Notification if tests fail
-      uses: rtCamp/action-slack-notify@v2
+      uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # v2.2.0
       if: ${{ failure() && github.event_name == 'schedule' }}
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
