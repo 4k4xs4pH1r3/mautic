@@ -15,7 +15,12 @@ jobs:
     name: Create draft release
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Harden Runner
+      uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
     - name: Generate release notes for milestone ${{ github.event.inputs.milestone }}
       run: |
         # Download changelog generator
@@ -26,7 +31,7 @@ jobs:
         java -jar ./github-changelog-generator.jar --spring.config.location="./release-notes.yml" ${{ github.event.inputs.milestone }} mautic-changelog.txt || true
     
     - name: Upload mautic-changelog.txt artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
       with:
         name: mautic-changelog.txt
         path: ./mautic-changelog.txt
